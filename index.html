@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>海报画廊</title>
+		<link rel="stylesheet" href="css/new_file.css" />
+		<style type="text/css">
+			body,div,p,img{
+				padding: 0;
+				margin: 0;
+			}
+			body{
+				background-color: #fff;
+				color: #555;
+				font-family: "微软雅黑","Avenir Next";
+				font-size: 14px;
+				-webkit-font-smoothing: antialiased;
+			}
+			.wrap{
+				width: 100%;
+				height: 600px;
+				position: absolute;
+				top: 50%;
+				margin-top: -300px;
+				background-color: #333;
+				overflow: hidden;	
+				-webkit-perspective: 800px;/*为了显示3d特效*/
+			}
+			.photo{
+				width: 260px;
+				height: 360px;
+				position: absolute;
+				left: 50%;
+				top: 50px;
+				margin: -180px 0 0 -130px;
+				z-index: 1;
+				box-shadow: 0 0 1px rgba(0,0,0,0.01);
+				-webkit-transition: all .8s;
+			}
+			.photo .side{
+				width: 100%;
+				height: 100%;
+				background-color: #eee;
+				position: absolute;
+				top: 0;
+				right: 0;
+				padding: 20px;
+				box-sizing: border-box;
+			}
+			.photo .side-front{}
+			.photo .side-front .image{
+				width: 100%;
+				height: 290px;
+				line-height: 290px;
+				overflow: hidden;
+			}
+			.photo .side-front .image img{
+				width: 100%;
+			}
+			.photo .side-front .caption{
+				text-align: center;
+				font-size: 16px;
+				line-height: 50px;
+			}
+			.photo .side-back{}
+			.photo .side-back .desc{
+				color: #666;
+				font-size: 14px;
+				line-height: 1.5em;
+			}
+			.photo-center{
+				width: 260px;
+				height: 360px;
+				left: 50%;
+				top: 50%;
+				margin: -180px,0,0,-130px;
+				z-index: 999;
+			}
+			.photo-wrap{
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				/*该transform-style属性应用于元素时，确定该元素的子元素是位于3D空间中还是扁平。*/
+				-webkit-transform-style: preserve-3d;
+				-webkit-transform-origin: left center;
+				-webkit-transition: all .8s;
+			}
+			.photo-wrap .side-front{
+				-webkit-transform: rotateY(0deg);
+			}
+			.photo-wrap .side-back{
+				-webkit-transform: rotateY(180deg);
+			}
+			.photo-wrap .side{
+				-webkit-backface-visibility: hidden;
+			}
+			.photo-front .photo-wrap{
+				-webkit-transform: translate(0px,0px) rotateY(0deg);
+			}
+			.photo-back .photo-wrap{
+				-webkit-transform: translate(260px,0px) rotateY(180deg);
+			}
+			/*控制按钮样式*/
+			.nav{
+				width: 60%;
+				height: 30px;
+				line-height: 30px;
+				position: absolute;
+				bottom: 20px;
+				left: 20%;
+				z-index: 999;
+				text-align: center;
+			}
+			/*普通*/
+			.nav .i{
+				width: 30px;
+				height: 30px;
+				display:inline-block;
+				cursor: pointer;
+				background: #aaa;
+				text-align: center;
+				border-radius: 50%;
+				
+				-webkit-transition: all .6s;
+				-webkit-transform: scale(0.48);
+				
+				/*图标字体*/
+				font-family: 'icomoon' !important;/*!important：表示某条属性（声明）具体最高的优化级*/
+				speak: none;
+				font-style: normal;
+				font-weight: normal;
+				font-variant: normal;/*把段落设置为小型大写字母字体(font-variant)*/
+				text-transform: none;/*text-transform 属性控制文本的大小写。*/
+				line-height: 1;
+				
+				/*为了让字体更漂亮*/
+				-webkit-font-smoothing: antialiased;
+				-moz-osx-font-smoothing:grayscale;
+			}
+			.nav .i:before{
+				content: "\e965";
+				display: inline-block;
+				line-height: 30px;
+				text-align: center;
+				color: #fff;
+				opacity: 0;
+			}
+			/*choose*/
+			.nav .i_current{
+				-webkit-transform: scale(1);
+			}
+			.nav .i_current:before{
+				opacity: 1;
+			}
+			/*back*/
+			.nav .i_back{
+				-webkit-transform: rotateY(-180deg);
+				background: #555;
+			}
+		</style>
+	</head>
+	<!--onselectstart="return false" 不能选中里面的文本-->
+	<body onselectstart="return false">
+		<div id="wrap" class="wrap">
+			<div class="photo photo-front" onclick="turn(this)" id="photo_{{index}}">
+				<div class="photo-wrap">
+					<div class="side side-front">
+						<p class="image">
+							<img src="img/{{img}}" alt="海报"/>
+						</p>
+						<p class="caption">{{caption}}</p>
+					</div>
+					<div class="side side-back">
+						<p class="desc">{{desc}}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/data.js" ></script>
+		<script type="text/javascript">
+			/*select函数*/
+			function g(selector){
+				var method=selector.substr(0,1)=='.'?'getElementsByClassName':'getElementById';
+				return document[method](selector.substr(1));
+				/*method是字符串方法，不能用.来连接，要用[]*/
+			}
+			
+			/*随机数产生器*/
+			function random(range){
+				var max=Math.max(range[0],range[1]);
+				var min=Math.min(range[0],range[1]);
+				
+				var diff=max-min;
+				var number=Math.floor(Math.random()*diff+min);
+				
+				return number;
+			}
+			
+			/*输出所有海报*/
+			var data=data;
+			function addPhotos(){
+				var template=g('#wrap').innerHTML;
+				var html=[];
+				var nav=[];
+				
+				for(var s in data){
+					/*替换关键字*/
+					var _html=template.replace('{{index}}',s)
+										.replace('{{img}}',data[s].img)
+										.replace('{{caption}}',data[s].caption)
+										.replace('{{desc}}',data[s].desc);
+						html.push(_html);
+						nav.push('<span id="nav_'+s+'" class="i" onclick="turn(g(\'#photo_'+s+'\'))"></span>')
+				}
+				html.push('<div class="nav">'+nav.join('')+'</div>');
+				/*join() 方法用于把数组中的所有元素放入一个字符串。元素是通过指定的分隔符进行分隔的。*/
+				g('#wrap').innerHTML=html.join('');
+				
+				rsort(random([0,data.length]));
+			}
+			
+			addPhotos();
+			/*左右范围*/
+			function range(){
+				var range={
+					left:{
+						x:[],
+						y:[]
+					},
+					right:{
+						x:[],
+						y:[]
+					}
+				};
+				
+				var wrap={
+					w:g("#wrap").clientWidth,
+					h:g("#wrap").clientHeight
+				};
+				
+				var photo={
+					w:g(".photo")[0].clientWidth,
+					h:g(".photo")[0].clientHeight
+				};
+				
+				range.wrap=wrap;
+				range.photo=photo;
+				
+				range.left.x=[0-photo.w,wrap.w/2-photo.w];
+				range.left.y=[0-photo.h,wrap.h];
+				
+				range.right.x=[wrap.w/2+photo.w/2,wrap.w];
+				range.right.y=range.left.y;
+				
+				return range;
+			}
+			
+			
+			/*排序海报*/
+			function rsort(n){
+				var _photo=g(".photo");
+				var photos=[];
+				
+				/*初始化所有海报样式*/
+				for(s=0;s<_photo.length;s++)
+				{
+					_photo[s].className=_photo[s].className.replace(/\s*photo-center\s*/," ");
+					_photo[s].className=_photo[s].className.replace(/\s*photo-front\s*/," ");
+					_photo[s].className=_photo[s].className.replace(/\s*photo-back\s*/," ");
+					_photo[s].className+='photo-front';
+					_photo[s].style.left='';
+					_photo[s].style.top='';
+					
+					_photo[s].style['-webkit-transform']='rotate(0deg) scale(1.3)';
+					/*push进数组*/
+					photos.push(_photo[s]);
+				}
+				
+				var photo_center=g("#photo_"+n);
+				photo_center.className+=' photo-center ';
+				/*数组中删除中间的海报*/
+				photo_center=photos.splice(n,1)[0];
+				
+				/*剩下的海报分为左右2个部分*/
+				var photo_left=photos.splice(0,Math.ceil(photos.length)/2);
+				var photo_right=photos;
+				/*分配*/
+				var ranges=range();
+				for(var s in photo_left){
+					var photo=photo_left[s];
+					/*location*/
+					photo.style.left=random(ranges.left.x)+'px';
+					photo.style.top=random(ranges.left.y)+'px';
+					/*angle*/
+					photo.style['-webkit-transform']='rotate('+random([-150,150])+'deg) scale(1)';
+				}
+				for(var s in photo_right){
+					var photo=photo_right[s];
+					/*location*/
+					photo.style.left=random(ranges.right.x)+'px';
+					photo.style.top=random(ranges.right.y)+'px';
+					/*angle*/
+					photo.style['-webkit-transform']='rotate('+random([-150,150])+'deg) scale(1)';
+				}
+				
+				/*button*/
+				var navs=g(".i");
+				for(var i=0;i<navs.length;i++)
+				{
+					navs[i].className=navs[i].className.replace(/\s*i_current\s*/,' ');
+					navs[i].className=navs[i].className.replace(/\s*i_back\s*/,' ');
+				}
+				g('#nav_'+n).className+=' i_current ';
+			}
+			/*翻页*/
+			function turn(elem){
+				var cls=elem.className;
+				var n=elem.id.split('_')[1];
+				/*正则表达式的前后使用/是语法规定，犹如字符串的前后使用引号一样。*/
+				if(!/photo-center/.test(cls)){
+					return rsort(n);
+				}
+				if(/photo-front/.test(cls)){
+					cls=cls.replace(/photo-front/,'photo-back');
+					g('#nav_'+n).className+='i_back';
+				}else{
+					cls=cls.replace(/photo-back/,'photo-front');
+					/*\s*匹配空白格/*/
+					g('#nav_'+n).className=g('#nav_'+n).className.replace(/\s*i_back\s*/,' ');
+				}
+				return elem.className=cls;
+			}
+		</script>
+	</body>
+</html>
